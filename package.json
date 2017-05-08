@@ -1,0 +1,14 @@
+{
+  "name": "prometheus-parser-js",
+  "version": "1.0.0",
+  "description": "Parses Prometheus text format into JSON",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "split-lines": "^1.1.0"
+  }
+}
