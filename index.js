@@ -1,24 +1,11 @@
 const fs = require('fs');
 const splitLines = require('split-lines');
 
-const STATE_NAME = 0;
-const STATE_STARTOFLABELNAME = 1;
-const STATE_ENDOFNAME = 2;
-const STATE_VALUE = 3;
-const STATE_ENDOFLABELS = 4;
-const STATE_LABELNAME = 5;
-const STATE_LABELVALUEQUOTE = 6;
-const STATE_LABELVALUEEQUALS = 7;
-const STATE_LABELVALUE = 8;
-const STATE_LABELVALUESLASH = 9;
-const STATE_NEXTLABEL = 10;
-const ERR_MSG = 'Invalid line: ';
-
 var metricsFile = fs.readFileSync('metrics', 'utf8');
 console.time('parse');
 var convertedMetrics = parse(metricsFile);
 console.timeEnd('parse');
-// console.log(JSON.stringify(convertedMetrics, null, 4));
+console.log(JSON.stringify(convertedMetrics, null, 4));
 
 function parse(metrics) {
     var lines = splitLines(metrics);
@@ -79,9 +66,9 @@ function parse(metrics) {
             if (metric) {
                 converted.push({
                     name: metric,
-                    help: help,
+                    help: help ? help : '',
                     type: type ? type : 'UNTYPED',
-                    samples: samples
+                    metrics: samples
                 });
             }
             metric = lineMetric;
@@ -90,6 +77,7 @@ function parse(metrics) {
             samples = [];
         }
         if (lineSample) {
+            delete lineSample.name;
             samples.push(lineSample);
         }
     }
@@ -128,6 +116,19 @@ function unescapeHelp(line) {
 }
 
 function parseSampleLine(line) {
+    const STATE_NAME = 0;
+    const STATE_STARTOFLABELNAME = 1;
+    const STATE_ENDOFNAME = 2;
+    const STATE_VALUE = 3;
+    const STATE_ENDOFLABELS = 4;
+    const STATE_LABELNAME = 5;
+    const STATE_LABELVALUEQUOTE = 6;
+    const STATE_LABELVALUEEQUALS = 7;
+    const STATE_LABELVALUE = 8;
+    const STATE_LABELVALUESLASH = 9;
+    const STATE_NEXTLABEL = 10;
+    const ERR_MSG = 'Invalid line: ';
+    
     // adapted from https://github.com/prometheus/client_python/blob/ce7f2978499dbd24e1028ef8966e50f374f51f5a/prometheus_client/parser.py#L48
     var name = '', labelname = '', labelvalue = '', value = '', labels = undefined;
     var state = STATE_NAME;
