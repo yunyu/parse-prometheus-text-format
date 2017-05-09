@@ -9,9 +9,9 @@ for (var i = 0; i < lines.length; i++) {
     if (line.length == 0) {
         // ignore blank lines
     } else if (line.charAt(0) == '#') {
-
+        console.log("Skipping: " + line);
     } else {
-        console.log(parseSampleLine(line));
+        console.log(JSON.stringify(parseSampleLine(line)));
     }
 }
 
@@ -65,7 +65,7 @@ function parseSampleLine(line) {
     var labelname = '';
     var labelvalue = '';
     var value = '';
-    var labels = new Map();
+    var labels = {};
 
     var state = STATE_NAME;
 
@@ -127,7 +127,7 @@ function parseSampleLine(line) {
             if (charAt == '\\') {
                 state = STATE_LABELVALUESLASH;
             } else if (charAt == '"') {
-                labels.set(labelname, labelvalue);
+                labels[labelname] = labelvalue;
                 labelname = '';
                 labelvalue = '';
                 state = STATE_NEXTLABEL;
@@ -173,8 +173,6 @@ function parseSampleLine(line) {
 
     return {
         name: name,
-        labelname: labelname,
-        labelvalue: labelvalue,
         value: value,
         labels: labels
     };

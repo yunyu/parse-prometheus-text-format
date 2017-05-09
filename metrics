@@ -107,3 +107,7 @@ jvm_threads_deadlocked 0.0
 # HELP jvm_threads_deadlocked_monitor Cycles of JVM-threads that are in deadlock waiting to acquire object monitors
 # TYPE jvm_threads_deadlocked_monitor gauge
 jvm_threads_deadlocked_monitor 0.0
+# Escaping in label values:
+msdos_file_access_time_seconds{path="C:\\DIR\\FILE.TXT",error="Cannot find file:\n\"FILE.TXT\""} 1.458255915e9
+# Minimalistic line:
+metric_without_timestamp_and_labels 12.47
