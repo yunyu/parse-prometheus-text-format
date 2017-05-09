@@ -15,6 +15,37 @@ for (var i = 0; i < lines.length; i++) {
     }
 }
 
+function unescapeHelp(line) {
+    var result = '';
+    slash = false
+
+    for (var c = 0; c < line.length; c++) {
+        var char = line.charAt(c);
+        if (slash) {
+            if (char == '\\') {
+                result += '\\';
+            } else if (char == 'n') {
+                result += '\n';
+            } else {
+                result += ('\\' + char);
+            }
+            slash = false;
+        } else {
+            if (char == '\\') {
+                slash = true;
+            } else {
+                result += char;
+            }
+        }
+    }
+
+    if (slash) {
+        result += '\\';
+    }
+
+    return result;
+}
+
 function parseSampleLine(line) {
     // adapted from https://github.com/prometheus/client_python/blob/ce7f2978499dbd24e1028ef8966e50f374f51f5a/prometheus_client/parser.py#L48
     const STATE_NAME = 0;
