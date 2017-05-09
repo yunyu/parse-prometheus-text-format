@@ -1,33 +1,89 @@
 const fs = require('fs');
 const splitLines = require('split-lines');
 
-var metrics = fs.readFileSync('metrics', 'utf8');
-var lines = splitLines(metrics);
+var metricsFile = fs.readFileSync('metrics', 'utf8');
+console.time('parse');
+var convertedMetrics = parse(metricsFile);
+console.timeEnd('parse');
+console.log(JSON.stringify(convertedMetrics, null, 4));
 
-for (var i = 0; i < lines.length; i++) {
-    var line = lines[i].trim();
-    if (line.length == 0) {
-        // ignore blank lines
-    } else if (line.startsWith('# ')) {
-        var parts = line.substring(2).split(' ');
-        if (parts.length < 3) {
-            // do nothing
-        } else { 
-            var instr = parts[0].toUpperCase();
-            parts.shift();
-            var name = parts[0];
-            parts.shift();
-            // JS split with limit does not give back remainder, this is easier
-            var remain = parts.join(' ');
-            if (instr == 'HELP') {
-                console.log({ name: name, help: unescapeHelp(remain) });
-            } else if (instr == 'TYPE') {
-                console.log({ name: name, type: parts[0] });
+function parse(metrics) {
+    var lines = splitLines(metrics);
+    var converted = [];
+
+    var metric;
+    var help;
+    var type;
+    var samples = [];
+
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        var lineMetric = undefined;
+        var lineHelp = undefined;
+        var lineType = undefined;
+        var lineSample = undefined;
+        if (line.length == 0) {
+            // ignore blank lines
+        } else if (line.startsWith('# ')) {
+            var parts = line.substring(2).split(' ');
+            if (parts.length < 3) {
+                // do nothing
+            } else {
+                var instr = parts[0].toUpperCase();
+                parts.shift();
+                var name = parts[0];
+                parts.shift();
+                if (instr == 'HELP') {
+                    // JS split with limit does not give back remainder, this is easier
+                    lineHelp = unescapeHelp(parts.join(' '));
+                    lineMetric = name;
+                } else if (instr == 'TYPE') {
+                    lineType = parts[0].toUpperCase();
+                    lineMetric = name;
+                }
+            }
+        } else {
+            lineSample = parseSampleLine(line);
+            lineMetric = lineSample.name;
+        }
+
+        if (lineMetric == metric) {
+            if (!help && lineHelp) {
+                help = lineHelp;
+            } else if (!type && lineType) {
+                type = lineType;
             }
         }
-    } else {
-        console.log(parseSampleLine(line));
+
+        var allowedNames = [metric];
+        if (type == 'SUMMARY') {
+            allowedNames.push(metric + '_count');
+            allowedNames.push(metric + '_sum');
+        } else if (type == 'HISTOGRAM') {
+            allowedNames.push(metric + '_count');
+            allowedNames.push(metric + '_sum');
+            allowedNames.push(metric + '_bucket');
+        }
+
+        if (i + 1 == lines.length || (lineMetric && allowedNames.indexOf(lineMetric) == -1)) {
+            if (metric) {
+                converted.push({
+                    name: metric,
+                    help: help,
+                    type: type ? type : 'UNTYPED',
+                    samples: samples
+                });
+            }
+            metric = lineMetric;
+            help = lineHelp ? lineHelp : undefined;
+            type = lineType ? lineType : undefined;
+            samples = [];
+        }
+        if (lineSample) {
+            samples.push(lineSample);
+        }
     }
+    return converted;
 }
 
 function unescapeHelp(line) {
