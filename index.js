@@ -8,6 +8,9 @@ console.timeEnd('parse');
 console.log(JSON.stringify(convertedMetrics, null, 4));
 
 function parse(metrics) {
+    const SUMMARY_TYPE = 'SUMMARY';
+    const HISTOGRAM_TYPE = 'HISTOGRAM';
+
     var lines = splitLines(metrics);
     var converted = [];
 
@@ -52,14 +55,16 @@ function parse(metrics) {
             }
         }
 
+        var suffixedCount = metric + '_count';
+        var suffixedSum = metric + '_sum';
+        var suffixedBucket = metric + '_bucket';
         var allowedNames = [metric];
-        if (type == 'SUMMARY') {
-            allowedNames.push(metric + '_count');
-            allowedNames.push(metric + '_sum');
-        } else if (type == 'HISTOGRAM') {
-            allowedNames.push(metric + '_count');
-            allowedNames.push(metric + '_sum');
-            allowedNames.push(metric + '_bucket');
+        if (type == SUMMARY_TYPE || type == HISTOGRAM_TYPE) {
+            allowedNames.push(suffixedCount);
+            allowedNames.push(suffixedSum);
+        } 
+        if (type == HISTOGRAM_TYPE) {
+            allowedNames.push(suffixedBucket);
         }
 
         if (i + 1 == lines.length || (lineMetric && allowedNames.indexOf(lineMetric) == -1)) {
@@ -77,6 +82,19 @@ function parse(metrics) {
             samples = [];
         }
         if (lineSample) {
+            if (lineSample.name != metric) {
+                if (type == SUMMARY_TYPE || type == HISTOGRAM_TYPE) {
+                    if (lineSample.name == suffixedCount) {
+                        lineSample.count = lineSample.value;
+                    } else if (lineSample.name == suffixedSum) {
+                        lineSample.sum = lineSample.value;
+                    }
+                }
+                if (type == HISTOGRAM_TYPE && lineSample.name == suffixedBucket) {
+                    lineSample.bucket = lineSample.value;
+                }
+                delete lineSample.value;
+            }
             delete lineSample.name;
             samples.push(lineSample);
         }
@@ -128,7 +146,7 @@ function parseSampleLine(line) {
     const STATE_LABELVALUESLASH = 9;
     const STATE_NEXTLABEL = 10;
     const ERR_MSG = 'Invalid line: ';
-    
+
     // adapted from https://github.com/prometheus/client_python/blob/ce7f2978499dbd24e1028ef8966e50f374f51f5a/prometheus_client/parser.py#L48
     var name = '', labelname = '', labelvalue = '', value = '', labels = undefined;
     var state = STATE_NAME;
