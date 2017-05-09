@@ -8,10 +8,25 @@ for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
     if (line.length == 0) {
         // ignore blank lines
-    } else if (line.charAt(0) == '#') {
-        console.log("Skipping: " + line);
+    } else if (line.startsWith('# ')) {
+        var parts = line.substring(2).split(' ');
+        if (parts.length < 3) {
+            // do nothing
+        } else { 
+            var instr = parts[0].toUpperCase();
+            parts.shift();
+            var name = parts[0];
+            parts.shift();
+            // JS split with limit does not give back remainder, this is easier
+            var remain = parts.join(' ');
+            if (instr == 'HELP') {
+                console.log({ name: name, help: unescapeHelp(remain) });
+            } else if (instr == 'TYPE') {
+                console.log({ name: name, type: parts[0] });
+            }
+        }
     } else {
-        console.log(JSON.stringify(parseSampleLine(line)));
+        console.log(parseSampleLine(line));
     }
 }
 
