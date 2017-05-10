@@ -25,6 +25,10 @@ Example
 Input: 
 
 ```
+# HELP jvm_classes_loaded The number of classes that are currently loaded in the JVM
+# TYPE jvm_classes_loaded gauge
+jvm_classes_loaded 3851.0
+
 # HELP http_requests_total The total number of HTTP requests.
 # TYPE http_requests_total counter
 http_requests_total{method="post",code="200"} 1027 1395066363000
@@ -74,6 +78,16 @@ Stringified result:
 
 ```js
 [
+    {
+        "name": "jvm_classes_loaded",
+        "help": "The number of classes that are currently loaded in the JVM",
+        "type": "GAUGE",
+        "metrics": [
+            {
+                "value": "3851.0"
+            }
+        ]
+    },
     {
         "name": "http_requests_total",
         "help": "The total number of HTTP requests.",
@@ -136,34 +150,38 @@ Stringified result:
         "name": "http_request_duration_seconds",
         "help": "A histogram of the request duration.",
         "type": "HISTOGRAM",
-        "metrics": {
-            "buckets": {
-                "1": "133988",
-                "0.05": "24054",
-                "0.1": "33444",
-                "0.2": "100392",
-                "0.5": "129389",
-                "+Inf": "144320"
-            },
-            "count": "144320",
-            "sum": "53423"
-        }
+        "metrics": [
+            {
+                "buckets": {
+                    "1": "133988",
+                    "0.05": "24054",
+                    "0.1": "33444",
+                    "0.2": "100392",
+                    "0.5": "129389",
+                    "+Inf": "144320"
+                },
+                "count": "144320",
+                "sum": "53423"
+            }
+        ]
     },
     {
         "name": "rpc_duration_seconds",
         "help": "A summary of the RPC duration in seconds.",
         "type": "SUMMARY",
-        "metrics": {
-            "quantiles": {
-                "0.01": "3102",
-                "0.05": "3272",
-                "0.5": "4773",
-                "0.9": "9001",
-                "0.99": "76656"
-            },
-            "count": "2693",
-            "sum": "1.7560473e+07"
-        }
+        "metrics": [
+            {
+                "quantiles": {
+                    "0.01": "3102",
+                    "0.05": "3272",
+                    "0.5": "4773",
+                    "0.9": "9001",
+                    "0.99": "76656"
+                },
+                "count": "2693",
+                "sum": "1.7560473e+07"
+            }
+        ]
     },
     {
         "name": "jvm_gc_collection_seconds",

@@ -160,7 +160,7 @@ function flattenMetrics(metrics, groupName, keyName, valueName) {
         }
     }
     if (flattened) {
-        return flattened;
+        return [flattened];
     } else {
         return metrics;
     }
