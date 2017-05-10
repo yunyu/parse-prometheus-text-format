@@ -1,5 +1,3 @@
-var fs = require('fs');
-
 var SUMMARY_TYPE = 'SUMMARY';
 var HISTOGRAM_TYPE = 'HISTOGRAM';
 
@@ -16,14 +14,7 @@ var STATE_LABELVALUESLASH = 9;
 var STATE_NEXTLABEL = 10;
 var ERR_MSG = 'Invalid line: ';
 
-var metricsFile = fs.readFileSync('metrics', 'utf8');
-var convertedMetrics;
-console.time('parse');
-convertedMetrics = parse(metricsFile);
-console.timeEnd('parse');
-console.log(JSON.stringify(convertedMetrics, null, 4));
-
-function parse(metrics) {
+module.exports = function (metrics) {
     var lines = metrics.split('\n'); // Prometheus format defines UNIX endings
     var converted = [];
 
@@ -136,6 +127,9 @@ function parse(metrics) {
 function shallowObjectEquals(obj1, obj2) {
     if (!obj1 || !obj2) {
         return obj1 == obj2;
+    }
+    if (obj1 === obj2) {
+        return true;
     }
     var obj1Keys = Object.keys(obj1);
     if (obj1Keys.length != Object.keys(obj2).length) {
