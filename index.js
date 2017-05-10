@@ -83,6 +83,11 @@ function parse(metrics) {
         if (i + 1 == lines.length || (lineMetric && allowedNames.indexOf(lineMetric) == -1)) {
             // write current
             if (metric) {
+                if (type == SUMMARY_TYPE) {
+                    samples = flattenMetrics(samples, 'quantiles', 'quantile', 'value');
+                } else if (type == HISTOGRAM_TYPE) {
+                    samples = flattenMetrics(samples, 'buckets', 'le', 'bucket');
+                }
                 converted.push({
                     name: metric,
                     help: help ? help : '',
@@ -127,6 +132,28 @@ function parse(metrics) {
     }
 
     return converted;
+}
+
+function flattenMetrics(metrics, groupName, keyName, valueName) {
+    var flattened = null;
+    for (var i = 0; i < metrics.length; i++) {
+        var sample = metrics[i];
+        if (sample.labels && sample.labels[keyName] && sample[valueName]) {
+            if (!flattened) {
+                flattened = {};
+                flattened[groupName] = {};
+            }
+            flattened[groupName][sample.labels[keyName]] = sample[valueName];
+        } else if (!sample.labels && sample.count && sample.sum) {
+            flattened.count = sample.count;
+            flattened.sum = sample.sum;
+        }
+    }
+    if (flattened) {
+        return flattened;
+    } else {
+        return metrics;
+    }
 }
 
 // adapted from https://github.com/prometheus/client_python/blob/0.0.19/prometheus_client/parser.py
