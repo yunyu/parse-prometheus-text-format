@@ -1,5 +1,4 @@
 var fs = require('fs');
-var splitLines = require('split-lines');
 var equal = require('deep-equal');
 
 var SUMMARY_TYPE = 'SUMMARY';
@@ -26,7 +25,7 @@ console.timeEnd('parse');
 console.log(JSON.stringify(convertedMetrics, null, 4));
 
 function parse(metrics) {
-    var lines = splitLines(metrics);
+    var lines = metrics.split('\n'); // Prometheus format defines UNIX endings
     var converted = [];
 
     var metric, help, type, samples = [];
