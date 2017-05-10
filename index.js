@@ -1,6 +1,22 @@
-const fs = require('fs');
-const splitLines = require('split-lines');
-const equal = require('deep-equal');
+var fs = require('fs');
+var splitLines = require('split-lines');
+var equal = require('deep-equal');
+
+var SUMMARY_TYPE = 'SUMMARY';
+var HISTOGRAM_TYPE = 'HISTOGRAM';
+
+var STATE_NAME = 0;
+var STATE_STARTOFLABELNAME = 1;
+var STATE_ENDOFNAME = 2;
+var STATE_VALUE = 3;
+var STATE_ENDOFLABELS = 4;
+var STATE_LABELNAME = 5;
+var STATE_LABELVALUEQUOTE = 6;
+var STATE_LABELVALUEEQUALS = 7;
+var STATE_LABELVALUE = 8;
+var STATE_LABELVALUESLASH = 9;
+var STATE_NEXTLABEL = 10;
+var ERR_MSG = 'Invalid line: ';
 
 var metricsFile = fs.readFileSync('metrics', 'utf8');
 var convertedMetrics;
@@ -10,9 +26,6 @@ console.timeEnd('parse');
 console.log(JSON.stringify(convertedMetrics, null, 4));
 
 function parse(metrics) {
-    const SUMMARY_TYPE = 'SUMMARY';
-    const HISTOGRAM_TYPE = 'HISTOGRAM';
-
     var lines = splitLines(metrics);
     var converted = [];
 
@@ -120,7 +133,7 @@ function parse(metrics) {
 // adapted from https://github.com/prometheus/client_python/blob/0.0.19/prometheus_client/parser.py
 function unescapeHelp(line) {
     var result = '';
-    slash = false
+    slash = false;
 
     for (var c = 0; c < line.length; c++) {
         var char = line.charAt(c);
@@ -150,19 +163,6 @@ function unescapeHelp(line) {
 }
 
 function parseSampleLine(line) {
-    const STATE_NAME = 0;
-    const STATE_STARTOFLABELNAME = 1;
-    const STATE_ENDOFNAME = 2;
-    const STATE_VALUE = 3;
-    const STATE_ENDOFLABELS = 4;
-    const STATE_LABELNAME = 5;
-    const STATE_LABELVALUEQUOTE = 6;
-    const STATE_LABELVALUEEQUALS = 7;
-    const STATE_LABELVALUE = 8;
-    const STATE_LABELVALUESLASH = 9;
-    const STATE_NEXTLABEL = 10;
-    const ERR_MSG = 'Invalid line: ';
-
     var name = '', labelname = '', labelvalue = '', value = '', labels = {};
     var state = STATE_NAME;
 
