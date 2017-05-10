@@ -1,12 +1,16 @@
 {
-  "name": "prometheus-parser-js",
-  "version": "1.0.0",
-  "description": "Parses Prometheus text format into JSON",
+  "name": "parse-prometheus-text-format",
+  "version": "0.0.1",
+  "description": "Parses Prometheus text format into JavaScript objects",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {}
+  "author": "Yunyu Lin",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/yunyu/parse-prometheus-text-format.git"
+  }
 }
