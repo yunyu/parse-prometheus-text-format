@@ -3,8 +3,9 @@ const splitLines = require('split-lines');
 const equal = require('deep-equal');
 
 var metricsFile = fs.readFileSync('metrics', 'utf8');
+var convertedMetrics;
 console.time('parse');
-var convertedMetrics = parse(metricsFile);
+convertedMetrics = parse(metricsFile);
 console.timeEnd('parse');
 console.log(JSON.stringify(convertedMetrics, null, 4));
 
@@ -100,17 +101,13 @@ function parse(metrics) {
             }
             delete lineSample.name;
             // merge into existing sample if labels are deep equal
-            var found = null;
-            for (var j = 0; j < samples.length; j++) {
-                var el = samples[j];
-                if (equal(el.labels, lineSample.labels)) {
-                    found = el;
-                    break;
-                }
-            }
-            if (found) {
+            var samplesLen = samples.length;
+            var lastSample = samplesLen == 0 ? null : samples[samplesLen - 1];
+            if (lastSample && equal(lineSample.labels, lastSample.labels)) {
                 delete lineSample.labels;
-                Object.assign(found, lineSample);
+                for (var key in lineSample) {
+                    lastSample[key] = lineSample[key];
+                }
             } else {
                 samples.push(lineSample);
             }
