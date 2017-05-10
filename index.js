@@ -1,5 +1,6 @@
 const fs = require('fs');
 const splitLines = require('split-lines');
+const equal = require('deep-equal');
 
 var metricsFile = fs.readFileSync('metrics', 'utf8');
 console.time('parse');
@@ -14,17 +15,14 @@ function parse(metrics) {
     var lines = splitLines(metrics);
     var converted = [];
 
-    var metric;
-    var help;
-    var type;
-    var samples = [];
+    var metric, help, type, samples = [];
 
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i].trim();
-        var lineMetric = undefined, lineHelp = undefined, lineType = undefined, lineSample = undefined;
+        var lineMetric = null, lineHelp = null, lineType = null, lineSample = null;
         if (line.length == 0) {
             // ignore blank lines
-        } else if (line.startsWith('# ')) {
+        } else if (line.startsWith('# ')) { // process metadata lines
             var parts = line.substring(2).split(' ');
             if (parts.length < 3) {
                 // do nothing
@@ -42,12 +40,12 @@ function parse(metrics) {
                     lineMetric = name;
                 }
             }
-        } else {
+        } else { // process sample lines
             lineSample = parseSampleLine(line);
             lineMetric = lineSample.name;
         }
 
-        if (lineMetric == metric) {
+        if (lineMetric == metric) { // metadata always has same name
             if (!help && lineHelp) {
                 help = lineHelp;
             } else if (!type && lineType) {
@@ -55,6 +53,7 @@ function parse(metrics) {
             }
         }
 
+        // different types allow different suffixes
         var suffixedCount = metric + '_count';
         var suffixedSum = metric + '_sum';
         var suffixedBucket = metric + '_bucket';
@@ -62,12 +61,14 @@ function parse(metrics) {
         if (type == SUMMARY_TYPE || type == HISTOGRAM_TYPE) {
             allowedNames.push(suffixedCount);
             allowedNames.push(suffixedSum);
-        } 
+        }
         if (type == HISTOGRAM_TYPE) {
             allowedNames.push(suffixedBucket);
         }
 
+        // encountered new metric family or end of input
         if (i + 1 == lines.length || (lineMetric && allowedNames.indexOf(lineMetric) == -1)) {
+            // write current
             if (metric) {
                 converted.push({
                     name: metric,
@@ -76,12 +77,14 @@ function parse(metrics) {
                     metrics: samples
                 });
             }
+            // reset for new metric family
             metric = lineMetric;
-            help = lineHelp ? lineHelp : undefined;
-            type = lineType ? lineType : undefined;
+            help = lineHelp ? lineHelp : null;
+            type = lineType ? lineType : null;
             samples = [];
         }
         if (lineSample) {
+            // key is not called value in official implementation if suffixed count, sum, or bucket
             if (lineSample.name != metric) {
                 if (type == SUMMARY_TYPE || type == HISTOGRAM_TYPE) {
                     if (lineSample.name == suffixedCount) {
@@ -96,12 +99,28 @@ function parse(metrics) {
                 delete lineSample.value;
             }
             delete lineSample.name;
-            samples.push(lineSample);
+            // merge into existing sample if labels are deep equal
+            var found = null;
+            for (var j = 0; j < samples.length; j++) {
+                var el = samples[j];
+                if (equal(el.labels, lineSample.labels)) {
+                    found = el;
+                    break;
+                }
+            }
+            if (found) {
+                delete lineSample.labels;
+                Object.assign(found, lineSample);
+            } else {
+                samples.push(lineSample);
+            }
         }
     }
+
     return converted;
 }
 
+// adapted from https://github.com/prometheus/client_python/blob/0.0.19/prometheus_client/parser.py
 function unescapeHelp(line) {
     var result = '';
     slash = false
@@ -147,111 +166,107 @@ function parseSampleLine(line) {
     const STATE_NEXTLABEL = 10;
     const ERR_MSG = 'Invalid line: ';
 
-    // adapted from https://github.com/prometheus/client_python/blob/ce7f2978499dbd24e1028ef8966e50f374f51f5a/prometheus_client/parser.py#L48
-    var name = '', labelname = '', labelvalue = '', value = '', labels = undefined;
+    var name = '', labelname = '', labelvalue = '', value = '', labels = {};
     var state = STATE_NAME;
 
     for (var c = 0; c < line.length; c++) {
-        var charAt = line.charAt(c);
+        var char = line.charAt(c);
         if (state == STATE_NAME) {
-            if (charAt == '{') {
+            if (char == '{') {
                 state = STATE_STARTOFLABELNAME;
-            } else if (charAt == ' ' || charAt == '\t') {
+            } else if (char == ' ' || char == '\t') {
                 state = STATE_ENDOFNAME;
             } else {
-                name += charAt;
+                name += char;
             }
         } else if (state == STATE_ENDOFNAME) {
-            if (charAt == ' ' || charAt == '\t') {
+            if (char == ' ' || char == '\t') {
                 // do nothing
-            } else if (charAt == '{') {
+            } else if (char == '{') {
                 state = STATE_STARTOFLABELNAME;
             } else {
-                value += charAt;
+                value += char;
                 state = STATE_VALUE;
             }
         } else if (state == STATE_STARTOFLABELNAME) {
-            if (charAt == ' ' || charAt == '\t') {
+            if (char == ' ' || char == '\t') {
                 // do nothing
-            } else if (charAt == '}') {
+            } else if (char == '}') {
                 state = STATE_ENDOFLABELS;
             } else {
-                labelname += charAt;
+                labelname += char;
                 state = STATE_LABELNAME;
             }
         } else if (state == STATE_LABELNAME) {
-            if (charAt == '=') {
+            if (char == '=') {
                 state = STATE_LABELVALUEQUOTE;
-            } else if (charAt == '}') {
+            } else if (char == '}') {
                 state = STATE_ENDOFLABELS;
-            } else if (charAt == ' ' || charAt == '\t') {
+            } else if (char == ' ' || char == '\t') {
                 state = STATE_LABELVALUEEQUALS;
             } else {
-                labelname += charAt;
+                labelname += char;
             }
         } else if (state == STATE_LABELVALUEEQUALS) {
-            if (charAt == '=') {
+            if (char == '=') {
                 state = STATE_LABELVALUEQUOTE;
-            } else if (charAt == ' ' || charAt == '\t') {
+            } else if (char == ' ' || char == '\t') {
                 // do nothing
             } else {
                 throw ERR_MSG + line;
             }
         } else if (state == STATE_LABELVALUEQUOTE) {
-            if (charAt == '"') {
+            if (char == '"') {
                 state = STATE_LABELVALUE;
-            } else if (charAt == ' ' || charAt == '\t') {
+            } else if (char == ' ' || char == '\t') {
                 // do nothing
             } else {
                 throw ERR_MSG + line;
             }
         } else if (state == STATE_LABELVALUE) {
-            if (charAt == '\\') {
+            if (char == '\\') {
                 state = STATE_LABELVALUESLASH;
-            } else if (charAt == '"') {
-                if (!labels) {
-                    labels = {};
-                }
+            } else if (char == '"') {
                 labels[labelname] = labelvalue;
                 labelname = '';
                 labelvalue = '';
                 state = STATE_NEXTLABEL;
             } else {
-                labelvalue += charAt;
+                labelvalue += char;
             }
         } else if (state == STATE_LABELVALUESLASH) {
             state = STATE_LABELVALUE;
-            if (charAt == '\\') {
+            if (char == '\\') {
                 labelvalue += '\\';
-            } else if (charAt == 'n') {
+            } else if (char == 'n') {
                 labelvalue += '\n';
-            } else if (charAt == '"') {
+            } else if (char == '"') {
                 labelvalue += '"';
             } else {
-                labelvalue += ('\\' + charAt);
+                labelvalue += ('\\' + char);
             }
         } else if (state == STATE_NEXTLABEL) {
-            if (charAt == ',') {
+            if (char == ',') {
                 state = STATE_LABELNAME;
-            } else if (charAt == '}') {
+            } else if (char == '}') {
                 state = STATE_ENDOFLABELS;
-            } else if (charAt == ' ' || charAt == '\t') {
+            } else if (char == ' ' || char == '\t') {
                 // do nothing
             } else {
                 throw ERR_MSG + line;
             }
         } else if (state == STATE_ENDOFLABELS) {
-            if (charAt == ' ' || charAt == '\t') {
+            if (char == ' ' || char == '\t') {
                 // do nothing
             } else {
-                value += charAt;
+                value += char;
                 state = STATE_VALUE;
             }
         } else if (state == STATE_VALUE) {
-            if (charAt == ' ' || charAt == '\t') {
+            if (char == ' ' || char == '\t') {
                 break; // timestamps are NOT supported - ignoring
             } else {
-                value += charAt;
+                value += char;
             }
         }
     }

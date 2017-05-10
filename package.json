@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "deep-equal": "^1.0.1",
     "split-lines": "^1.1.0"
   }
 }
