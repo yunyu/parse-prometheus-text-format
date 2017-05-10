@@ -1,5 +1,4 @@
 var fs = require('fs');
-var equal = require('deep-equal');
 
 var SUMMARY_TYPE = 'SUMMARY';
 var HISTOGRAM_TYPE = 'HISTOGRAM';
@@ -120,7 +119,7 @@ function parse(metrics) {
             // merge into existing sample if labels are deep equal
             var samplesLen = samples.length;
             var lastSample = samplesLen == 0 ? null : samples[samplesLen - 1];
-            if (lastSample && equal(lineSample.labels, lastSample.labels)) {
+            if (lastSample && shallowObjectEquals(lineSample.labels, lastSample.labels)) {
                 delete lineSample.labels;
                 for (var key in lineSample) {
                     lastSample[key] = lineSample[key];
@@ -132,6 +131,23 @@ function parse(metrics) {
     }
 
     return converted;
+}
+
+function shallowObjectEquals(obj1, obj2) {
+    if (!obj1 || !obj2) {
+        return obj1 == obj2;
+    }
+    var obj1Keys = Object.keys(obj1);
+    if (obj1Keys.length != Object.keys(obj2).length) {
+        return false;
+    }
+    for (var i = 0; i < obj1Keys.length; i++) {
+        var key = obj1Keys[i];
+        if (obj1[key] != obj2[key]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function flattenMetrics(metrics, groupName, keyName, valueName) {

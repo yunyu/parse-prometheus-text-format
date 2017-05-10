@@ -8,7 +8,5 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "deep-equal": "^1.0.1"
-  }
+  "dependencies": {}
 }
