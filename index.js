@@ -163,7 +163,7 @@ function unescapeHelp(line) {
 }
 
 function parseSampleLine(line) {
-    var name = '', labelname = '', labelvalue = '', value = '', labels = {};
+    var name = '', labelname = '', labelvalue = '', value = '', labels = undefined;
     var state = STATE_NAME;
 
     for (var c = 0; c < line.length; c++) {
@@ -224,6 +224,9 @@ function parseSampleLine(line) {
             if (char == '\\') {
                 state = STATE_LABELVALUESLASH;
             } else if (char == '"') {
+                if (!labels) {
+                    labels = {};
+                }
                 labels[labelname] = labelvalue;
                 labelname = '';
                 labelvalue = '';
