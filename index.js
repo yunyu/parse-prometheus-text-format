@@ -1,5 +1,5 @@
 // NOTES
-// =====
+// =======
 // * No external modules (deep object equality) or ES6 (Object.assign) for performance reasons
 // * Weak equals/not equals benchmarks faster in V8 for some reason, and types are simple here
 
@@ -15,7 +15,7 @@ module.exports = function (metrics) {
     for (var i = 0; i < lines.length; ++i) {
         var line = lines[i].trim();
         var lineMetric = null, lineHelp = null, lineType = null, lineSample = null;
-        if (line.length == 0) {
+        if (line.length === 0) {
             // ignore blank lines
         } else if (line.startsWith('# ')) { // process metadata lines
             line = line.substring(2);
@@ -28,14 +28,14 @@ module.exports = function (metrics) {
             if (instr) {
                 line = line.substring(5);
                 var spaceIndex = line.indexOf(' ');
-                if (spaceIndex != -1) {
+                if (spaceIndex !== -1) {
                     lineMetric = line.substring(0, spaceIndex);
                     var remain = line.substring(spaceIndex + 1);
-                    if (instr == 1) { // HELP
+                    if (instr === 1) { // HELP
                         lineHelp = remain;
                     } else { // TYPE
                         spaceIndex = remain.indexOf(' ');
-                        if (spaceIndex != -1) {
+                        if (spaceIndex !== -1) {
                             remain = remain.substring(0, spaceIndex);
                         }
                         lineType = remain.toUpperCase();
@@ -47,7 +47,7 @@ module.exports = function (metrics) {
             lineMetric = lineSample.name;
         }
 
-        if (lineMetric == metric) { // metadata always has same name
+        if (lineMetric === metric) { // metadata always has same name
             if (!help && lineHelp) {
                 help = lineHelp;
             } else if (!type && lineType) {
@@ -60,21 +60,21 @@ module.exports = function (metrics) {
         var suffixedSum = metric + '_sum';
         var suffixedBucket = metric + '_bucket';
         var allowedNames = [metric];
-        if (type == SUMMARY_TYPE || type == HISTOGRAM_TYPE) {
+        if (type === SUMMARY_TYPE || type === HISTOGRAM_TYPE) {
             allowedNames.push(suffixedCount);
             allowedNames.push(suffixedSum);
         }
-        if (type == HISTOGRAM_TYPE) {
+        if (type === HISTOGRAM_TYPE) {
             allowedNames.push(suffixedBucket);
         }
 
         // encountered new metric family or end of input
-        if (i + 1 == lines.length || (lineMetric && allowedNames.indexOf(lineMetric) == -1)) {
+        if (i + 1 === lines.length || (lineMetric && allowedNames.indexOf(lineMetric) === -1)) {
             // write current
             if (metric) {
-                if (type == SUMMARY_TYPE) {
+                if (type === SUMMARY_TYPE) {
                     samples = flattenMetrics(samples, 'quantiles', 'quantile', 'value');
-                } else if (type == HISTOGRAM_TYPE) {
+                } else if (type === HISTOGRAM_TYPE) {
                     samples = flattenMetrics(samples, 'buckets', 'le', 'bucket');
                 }
                 converted.push({
@@ -92,15 +92,15 @@ module.exports = function (metrics) {
         }
         if (lineSample) {
             // key is not called value in official implementation if suffixed count, sum, or bucket
-            if (lineSample.name != metric) {
-                if (type == SUMMARY_TYPE || type == HISTOGRAM_TYPE) {
-                    if (lineSample.name == suffixedCount) {
+            if (lineSample.name !== metric) {
+                if (type === SUMMARY_TYPE || type === HISTOGRAM_TYPE) {
+                    if (lineSample.name === suffixedCount) {
                         lineSample.count = lineSample.value;
-                    } else if (lineSample.name == suffixedSum) {
+                    } else if (lineSample.name === suffixedSum) {
                         lineSample.sum = lineSample.value;
                     }
                 }
-                if (type == HISTOGRAM_TYPE && lineSample.name == suffixedBucket) {
+                if (type === HISTOGRAM_TYPE && lineSample.name === suffixedBucket) {
                     lineSample.bucket = lineSample.value;
                 }
                 delete lineSample.value;
@@ -108,7 +108,7 @@ module.exports = function (metrics) {
             delete lineSample.name;
             // merge into existing sample if labels are deep equal
             var samplesLen = samples.length;
-            var lastSample = samplesLen == 0 ? null : samples[samplesLen - 1];
+            var lastSample = samplesLen === 0 ? null : samples[samplesLen - 1];
             if (lastSample && shallowObjectEquals(lineSample.labels, lastSample.labels)) {
                 delete lineSample.labels;
                 for (var key in lineSample) {
@@ -125,18 +125,18 @@ module.exports = function (metrics) {
 
 function shallowObjectEquals(obj1, obj2) {
     if (!obj1 || !obj2) {
-        return obj1 == obj2;
+        return obj1 === obj2;
     }
     if (obj1 === obj2) {
         return true;
     }
     var obj1Keys = Object.keys(obj1);
-    if (obj1Keys.length != Object.keys(obj2).length) {
+    if (obj1Keys.length !== Object.keys(obj2).length) {
         return false;
     }
     for (var i = 0; i < obj1Keys.length; ++i) {
         var key = obj1Keys[i];
-        if (obj1[key] != obj2[key]) {
+        if (obj1[key] !== obj2[key]) {
             return false;
         }
     }
@@ -173,16 +173,16 @@ function unescapeHelp(line) {
     for (var c = 0; c < line.length; ++c) {
         var char = line.charAt(c);
         if (slash) {
-            if (char == '\\') {
+            if (char === '\\') {
                 result += '\\';
-            } else if (char == 'n') {
+            } else if (char === 'n') {
                 result += '\n';
             } else {
                 result += ('\\' + char);
             }
             slash = false;
         } else {
-            if (char == '\\') {
+            if (char === '\\') {
                 slash = true;
             } else {
                 result += char;
@@ -216,62 +216,62 @@ function parseSampleLine(line) {
 
     for (var c = 0; c < line.length; ++c) {
         var char = line.charAt(c);
-        if (state == STATE_NAME) {
-            if (char == '{') {
+        if (state === STATE_NAME) {
+            if (char === '{') {
                 state = STATE_STARTOFLABELNAME;
-            } else if (char == ' ' || char == '\t') {
+            } else if (char === ' ' || char === '\t') {
                 state = STATE_ENDOFNAME;
             } else {
                 name += char;
             }
-        } else if (state == STATE_ENDOFNAME) {
-            if (char == ' ' || char == '\t') {
+        } else if (state === STATE_ENDOFNAME) {
+            if (char === ' ' || char === '\t') {
                 // do nothing
-            } else if (char == '{') {
+            } else if (char === '{') {
                 state = STATE_STARTOFLABELNAME;
             } else {
                 value += char;
                 state = STATE_VALUE;
             }
-        } else if (state == STATE_STARTOFLABELNAME) {
-            if (char == ' ' || char == '\t') {
+        } else if (state === STATE_STARTOFLABELNAME) {
+            if (char === ' ' || char === '\t') {
                 // do nothing
-            } else if (char == '}') {
+            } else if (char === '}') {
                 state = STATE_ENDOFLABELS;
             } else {
                 labelname += char;
                 state = STATE_LABELNAME;
             }
-        } else if (state == STATE_LABELNAME) {
-            if (char == '=') {
+        } else if (state === STATE_LABELNAME) {
+            if (char === '=') {
                 state = STATE_LABELVALUEQUOTE;
-            } else if (char == '}') {
+            } else if (char === '}') {
                 state = STATE_ENDOFLABELS;
-            } else if (char == ' ' || char == '\t') {
+            } else if (char === ' ' || char === '\t') {
                 state = STATE_LABELVALUEEQUALS;
             } else {
                 labelname += char;
             }
-        } else if (state == STATE_LABELVALUEEQUALS) {
-            if (char == '=') {
+        } else if (state === STATE_LABELVALUEEQUALS) {
+            if (char === '=') {
                 state = STATE_LABELVALUEQUOTE;
-            } else if (char == ' ' || char == '\t') {
+            } else if (char === ' ' || char === '\t') {
                 // do nothing
             } else {
                 throw ERR_MSG + line;
             }
-        } else if (state == STATE_LABELVALUEQUOTE) {
-            if (char == '"') {
+        } else if (state === STATE_LABELVALUEQUOTE) {
+            if (char === '"') {
                 state = STATE_LABELVALUE;
-            } else if (char == ' ' || char == '\t') {
+            } else if (char === ' ' || char === '\t') {
                 // do nothing
             } else {
                 throw ERR_MSG + line;
             }
-        } else if (state == STATE_LABELVALUE) {
-            if (char == '\\') {
+        } else if (state === STATE_LABELVALUE) {
+            if (char === '\\') {
                 state = STATE_LABELVALUESLASH;
-            } else if (char == '"') {
+            } else if (char === '"') {
                 if (!labels) {
                     labels = {};
                 }
@@ -282,36 +282,36 @@ function parseSampleLine(line) {
             } else {
                 labelvalue += char;
             }
-        } else if (state == STATE_LABELVALUESLASH) {
+        } else if (state === STATE_LABELVALUESLASH) {
             state = STATE_LABELVALUE;
-            if (char == '\\') {
+            if (char === '\\') {
                 labelvalue += '\\';
-            } else if (char == 'n') {
+            } else if (char === 'n') {
                 labelvalue += '\n';
-            } else if (char == '"') {
+            } else if (char === '"') {
                 labelvalue += '"';
             } else {
                 labelvalue += ('\\' + char);
             }
-        } else if (state == STATE_NEXTLABEL) {
-            if (char == ',') {
+        } else if (state === STATE_NEXTLABEL) {
+            if (char === ',') {
                 state = STATE_LABELNAME;
-            } else if (char == '}') {
+            } else if (char === '}') {
                 state = STATE_ENDOFLABELS;
-            } else if (char == ' ' || char == '\t') {
+            } else if (char === ' ' || char === '\t') {
                 // do nothing
             } else {
                 throw ERR_MSG + line;
             }
-        } else if (state == STATE_ENDOFLABELS) {
-            if (char == ' ' || char == '\t') {
+        } else if (state === STATE_ENDOFLABELS) {
+            if (char === ' ' || char === '\t') {
                 // do nothing
             } else {
                 value += char;
                 state = STATE_VALUE;
             }
-        } else if (state == STATE_VALUE) {
-            if (char == ' ' || char == '\t') {
+        } else if (state === STATE_VALUE) {
+            if (char === ' ' || char === '\t') {
                 break; // timestamps are NOT supported - ignoring
             } else {
                 value += char;
