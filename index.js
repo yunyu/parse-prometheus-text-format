@@ -1,7 +1,10 @@
 // NOTES
 // =======
 // * No external modules (deep object equality) or ES6 (Object.assign) for performance reasons
-// * Weak equals/not equals benchmarks faster in V8 for some reason, and types are simple here
+// * Empty line handling is slightly looser than the original implementation.
+// * Everything else should be similarly strict.
+
+var ERR_MSG = 'Invalid line: ';
 
 module.exports = function (metrics) {
     var SUMMARY_TYPE = 'SUMMARY';
@@ -18,30 +21,32 @@ module.exports = function (metrics) {
         if (line.length === 0) {
             // ignore blank lines
         } else if (line.startsWith('# ')) { // process metadata lines
-            line = line.substring(2);
+            var lineData = line.substring(2);
             var instr = null;
-            if (line.startsWith('HELP ')) {
+            if (lineData.startsWith('HELP ')) {
                 instr = 1;
-            } else if (line.startsWith('TYPE ')) {
+            } else if (lineData.startsWith('TYPE ')) {
                 instr = 2;
             }
             if (instr) {
-                line = line.substring(5);
-                var spaceIndex = line.indexOf(' ');
-                if (spaceIndex !== -1) {
-                    lineMetric = line.substring(0, spaceIndex);
-                    var remain = line.substring(spaceIndex + 1);
+                lineData = lineData.substring(5);
+                var spaceIndex = lineData.indexOf(' ');
+                if (spaceIndex !== -1) { // expect another token
+                    lineMetric = lineData.substring(0, spaceIndex);
+                    var remain = lineData.substring(spaceIndex + 1);
                     if (instr === 1) { // HELP
-                        lineHelp = remain;
+                        lineHelp = unescapeHelp(remain); // remain could be empty
                     } else { // TYPE
-                        spaceIndex = remain.indexOf(' ');
-                        if (spaceIndex !== -1) {
-                            remain = remain.substring(0, spaceIndex);
+                        if (remain.indexOf(' ') !== -1) {
+                            throw ERR_MSG + line;
                         }
                         lineType = remain.toUpperCase();
                     }
+                } else {
+                    throw ERR_MSG + line;
                 }
             }
+            // 100% pure comment line, ignore
         } else { // process sample lines
             lineSample = parseSampleLine(line);
             lineMetric = lineSample.name;
@@ -209,7 +214,6 @@ function parseSampleLine(line) {
     var STATE_LABELVALUE = 8;
     var STATE_LABELVALUESLASH = 9;
     var STATE_NEXTLABEL = 10;
-    var ERR_MSG = 'Invalid line: ';
 
     var name = '', labelname = '', labelvalue = '', value = '', labels = undefined;
     var state = STATE_NAME;
