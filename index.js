@@ -29,7 +29,11 @@ module.exports = function (metrics) {
                     if (instr == 1) { // HELP
                         lineHelp = remain;
                     } else { // TYPE
-                        lineType = remain;
+                        spaceIndex = remain.indexOf(' ');
+                        if (spaceIndex != -1) {
+                            remain = remain.substring(0, spaceIndex);
+                        }
+                        lineType = remain.toUpperCase();
                     }
                 }
             }
