@@ -1,20 +1,7 @@
-var SUMMARY_TYPE = 'SUMMARY';
-var HISTOGRAM_TYPE = 'HISTOGRAM';
-
-var STATE_NAME = 0;
-var STATE_STARTOFLABELNAME = 1;
-var STATE_ENDOFNAME = 2;
-var STATE_VALUE = 3;
-var STATE_ENDOFLABELS = 4;
-var STATE_LABELNAME = 5;
-var STATE_LABELVALUEQUOTE = 6;
-var STATE_LABELVALUEEQUALS = 7;
-var STATE_LABELVALUE = 8;
-var STATE_LABELVALUESLASH = 9;
-var STATE_NEXTLABEL = 10;
-var ERR_MSG = 'Invalid line: ';
-
 module.exports = function (metrics) {
+    var SUMMARY_TYPE = 'SUMMARY';
+    var HISTOGRAM_TYPE = 'HISTOGRAM';
+
     var lines = metrics.split('\n'); // Prometheus format defines UNIX endings
     var converted = [];
 
@@ -26,21 +13,28 @@ module.exports = function (metrics) {
         if (line.length == 0) {
             // ignore blank lines
         } else if (line.startsWith('# ')) { // process metadata lines
-            var parts = line.substring(2).split(' ');
-            if (parts.length < 3) {
-                // do nothing
-            } else {
-                var instr = parts[0].toUpperCase();
-                parts.shift();
-                var name = parts[0];
-                parts.shift();
-                if (instr == 'HELP') {
-                    // JS split with limit does not give back remainder, this is easier
-                    lineHelp = unescapeHelp(parts.join(' '));
-                    lineMetric = name;
-                } else if (instr == 'TYPE') {
-                    lineType = parts[0].toUpperCase();
-                    lineMetric = name;
+            line = line.substring(2);
+            var instr = null;
+            if (line.startsWith('HELP ')) {
+                instr = 1;
+            } else if (line.startsWith('TYPE ')) {
+                instr = 2;
+            }
+            if (instr) {
+                line = line.substring(5);
+                var spaceIndex = line.indexOf(' ');
+                if (spaceIndex != -1) {
+                    lineMetric = line.substring(0, spaceIndex);
+                    var remain = line.substring(spaceIndex + 1);
+                    if (instr == 1) { // HELP
+                        lineHelp = remain;
+                    } else { // TYPE
+                        spaceIndex = remain.indexOf(' ');
+                        if (spaceIndex != -1) {
+                            remain = remain.substring(0, spaceIndex);
+                        }
+                        lineType = remain.toUpperCase();
+                    }
                 }
             }
         } else { // process sample lines
@@ -199,6 +193,19 @@ function unescapeHelp(line) {
 }
 
 function parseSampleLine(line) {
+    var STATE_NAME = 0;
+    var STATE_STARTOFLABELNAME = 1;
+    var STATE_ENDOFNAME = 2;
+    var STATE_VALUE = 3;
+    var STATE_ENDOFLABELS = 4;
+    var STATE_LABELNAME = 5;
+    var STATE_LABELVALUEQUOTE = 6;
+    var STATE_LABELVALUEEQUALS = 7;
+    var STATE_LABELVALUE = 8;
+    var STATE_LABELVALUESLASH = 9;
+    var STATE_NEXTLABEL = 10;
+    var ERR_MSG = 'Invalid line: ';
+
     var name = '', labelname = '', labelvalue = '', value = '', labels = undefined;
     var state = STATE_NAME;
 
