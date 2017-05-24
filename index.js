@@ -1,3 +1,8 @@
+// NOTES
+// =====
+// * No external modules (deep object equality) or ES6 (Object.assign) for performance reasons
+// * Weak equals/not equals benchmarks faster in V8 for some reason, and types are simple here
+
 module.exports = function (metrics) {
     var SUMMARY_TYPE = 'SUMMARY';
     var HISTOGRAM_TYPE = 'HISTOGRAM';
@@ -7,7 +12,7 @@ module.exports = function (metrics) {
 
     var metric, help, type, samples = [];
 
-    for (var i = 0; i < lines.length; i++) {
+    for (var i = 0; i < lines.length; ++i) {
         var line = lines[i].trim();
         var lineMetric = null, lineHelp = null, lineType = null, lineSample = null;
         if (line.length == 0) {
@@ -129,7 +134,7 @@ function shallowObjectEquals(obj1, obj2) {
     if (obj1Keys.length != Object.keys(obj2).length) {
         return false;
     }
-    for (var i = 0; i < obj1Keys.length; i++) {
+    for (var i = 0; i < obj1Keys.length; ++i) {
         var key = obj1Keys[i];
         if (obj1[key] != obj2[key]) {
             return false;
@@ -140,7 +145,7 @@ function shallowObjectEquals(obj1, obj2) {
 
 function flattenMetrics(metrics, groupName, keyName, valueName) {
     var flattened = null;
-    for (var i = 0; i < metrics.length; i++) {
+    for (var i = 0; i < metrics.length; ++i) {
         var sample = metrics[i];
         if (sample.labels && sample.labels[keyName] && sample[valueName]) {
             if (!flattened) {
@@ -165,7 +170,7 @@ function unescapeHelp(line) {
     var result = '';
     slash = false;
 
-    for (var c = 0; c < line.length; c++) {
+    for (var c = 0; c < line.length; ++c) {
         var char = line.charAt(c);
         if (slash) {
             if (char == '\\') {
@@ -209,7 +214,7 @@ function parseSampleLine(line) {
     var name = '', labelname = '', labelvalue = '', value = '', labels = undefined;
     var state = STATE_NAME;
 
-    for (var c = 0; c < line.length; c++) {
+    for (var c = 0; c < line.length; ++c) {
         var char = line.charAt(c);
         if (state == STATE_NAME) {
             if (char == '{') {
