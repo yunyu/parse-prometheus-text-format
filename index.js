@@ -159,9 +159,13 @@ function flattenMetrics(metrics, groupName, keyName, valueName) {
                 flattened[groupName] = {};
             }
             flattened[groupName][sample.labels[keyName]] = sample[valueName];
-        } else if (!sample.labels && sample.count && sample.sum) {
-            flattened.count = sample.count;
-            flattened.sum = sample.sum;
+        } else if (!sample.labels) {
+            if (sample.count !== undefined) {
+                flattened.count = sample.count;
+            }
+            if (sample.sum !== undefined) {
+                flattened.sum = sample.sum;
+            }
         }
     }
     if (flattened) {
