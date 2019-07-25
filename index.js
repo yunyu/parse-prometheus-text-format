@@ -160,6 +160,9 @@ function flattenMetrics(metrics, groupName, keyName, valueName) {
             }
             flattened[groupName][sample.labels[keyName]] = sample[valueName];
         } else if (!sample.labels) {
+            if (!flattened) {
+                flattened = {};
+            }
             if (sample.count !== undefined) {
                 flattened.count = sample.count;
             }
