@@ -14,9 +14,11 @@ Usage
 ==
 
 ```js
-const parsePrometheusTextFormat = require('parse-prometheus-text-format');
-// Retrieve metrics as string
-var parsed = parsePrometheusTextFormat(metrics);
+import fs from 'fs'
+import parsePrometheusTextFormat from 'parse-prometheus-text-format'
+
+const metricsStr = fs.readFileSync('metrics.txt', 'utf8')
+const parsed = parsePrometheusTextFormat(metricsStr);
 ```
 
 Example
