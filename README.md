@@ -14,10 +14,10 @@ Usage
 ==
 
 ```js
-import fs from 'fs'
-import parsePrometheusTextFormat from 'parse-prometheus-text-format'
+import fs from 'fs';
+import parsePrometheusTextFormat from 'parse-prometheus-text-format';
 
-const metricsStr = fs.readFileSync('metrics.txt', 'utf8')
+const metricsStr = fs.readFileSync('metrics.txt', 'utf8');
 const parsed = parsePrometheusTextFormat(metricsStr);
 ```
 
