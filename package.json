@@ -1,6 +1,6 @@
 {
   "name": "parse-prometheus-text-format",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Parses Prometheus text format into JavaScript objects",
   "main": "dist/parse-prometheus-text-format.cjs.js",
   "module": "dist/parse-prometheus-text-format.esm.js",
