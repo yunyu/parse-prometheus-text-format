@@ -23,7 +23,7 @@ if (process.argv[2] === 'bench') {
     const actual = sortPromJSON(
         normalizeNumberValues(parsePrometheusTextFormat(inputStr))
     );
-    assert.deepEqual(expected, actual);
+    assert.deepEqual(actual, expected);
     console.log('Test OK');
 }
 
