@@ -59,3 +59,7 @@ jvm_gc_collection_seconds_count{gc="Copy",} 104.0
 jvm_gc_collection_seconds_sum{gc="Copy",} 0.491
 jvm_gc_collection_seconds_count{gc="MarkSweepCompact",} 12.0
 jvm_gc_collection_seconds_sum{gc="MarkSweepCompact",} 0.486
+
+# HELP metric_without_help
+# TYPE metric_without_help counter
+metric_without_help 0

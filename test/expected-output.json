@@ -159,5 +159,15 @@
         "sum": "91900"
       }
     ]
+  },
+  {
+    "name": "metric_without_help",
+    "help": "",
+    "type": "COUNTER",
+    "metrics": [
+      {
+        "value": "0"
+      }
+    ]
   }
 ]
