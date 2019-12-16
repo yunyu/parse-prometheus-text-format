@@ -28,7 +28,7 @@ http_request_duration_seconds_bucket{le="+Inf"} 144320
 http_request_duration_seconds_sum 53423
 http_request_duration_seconds_count 144320
 
-# Finally a summary, which has a complex representation, too:
+# A summary, which has a complex representation, too:
 # HELP rpc_duration_seconds A summary of the RPC duration in seconds.
 # TYPE rpc_duration_seconds summary
 rpc_duration_seconds{quantile="0.01"} 3102
@@ -44,6 +44,13 @@ rpc_duration_seconds_count 2693
 # TYPE myprogram_runtime_gc_pause_ns summary
 myprogram_runtime_gc_pause_ns_sum 91900
 myprogram_runtime_gc_pause_ns_count 3
+
+# A summary with a count before the quantiles
+# HELP some_metric Time needed to do something
+# TYPE some_metric summary
+some_metric_count 1
+some_metric{quantile="0.5"} 1
+some_metric{quantile="0.75"} 1
 
 # HELP jvm_gc_collection_seconds Time spent in a given JVM garbage collector in seconds.
 # TYPE jvm_gc_collection_seconds summary

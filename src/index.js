@@ -168,6 +168,8 @@ function flattenMetrics(metrics, groupName, keyName, valueName) {
         if (sample.labels && sample.labels[keyName] && sample[valueName]) {
             if (!flattened) {
                 flattened = {};
+            }
+            if (!flattened[groupName]) {
                 flattened[groupName] = {};
             }
             flattened[groupName][sample.labels[keyName]] = sample[valueName];
