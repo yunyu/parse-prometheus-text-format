@@ -53,7 +53,7 @@ export default function parsePrometheusTextFormat(metrics) {
                         }
                         lineType = remain.toUpperCase();
                     }
-                } else {
+                } else if (instr === 2) {
                     throw new InvalidLineError(line);
                 }
             }
@@ -162,32 +162,61 @@ export default function parsePrometheusTextFormat(metrics) {
 }
 
 function flattenMetrics(metrics, groupName, keyName, valueName) {
+    const result = [];
     let flattened = null;
+    let lastKey = null;
+
     for (let i = 0; i < metrics.length; ++i) {
         const sample = metrics[i];
-        if (sample.labels && sample.labels[keyName] && sample[valueName]) {
-            if (!flattened) {
-                flattened = {};
-                flattened[groupName] = {};
+        const labels = sample.labels || {};
+        const otherLabels = excludeKey(labels, keyName);
+        const currentKey = JSON.stringify(otherLabels);
+
+        if (currentKey !== lastKey) {
+            lastKey = currentKey;
+            flattened = null;
+        }
+
+        if (!flattened) {
+            flattened = {};
+            flattened[groupName] = {};
+            if (Object.keys(otherLabels).length) {
+                flattened.labels = otherLabels;
             }
-            flattened[groupName][sample.labels[keyName]] = sample[valueName];
-        } else if (!sample.labels) {
-            if (!flattened) {
-                flattened = {};
-            }
-            if (sample.count !== undefined) {
-                flattened.count = sample.count;
-            }
-            if (sample.sum !== undefined) {
-                flattened.sum = sample.sum;
-            }
+
+            result.push(flattened);
+        }
+
+        if (labels[keyName] !== undefined && sample[valueName] !== undefined) {
+            flattened[groupName][labels[keyName]] = sample[valueName];
+        }
+        if (sample.count !== undefined) {
+            flattened.count = sample.count;
+        }
+        if (sample.sum !== undefined) {
+            flattened.sum = sample.sum;
         }
     }
-    if (flattened) {
-        return [flattened];
-    } else {
-        return metrics;
+
+    return result;
+}
+
+/** Returns an object with the given key excluded */
+function excludeKey(object, key) {
+    if (!object) {
+        return labels;
     }
+
+    const result = {};
+
+    Object.keys(object)
+        .forEach(currentKey => {
+            if (currentKey !== key) {
+                result[currentKey] = object[currentKey];
+            }
+        });
+
+    return result;
 }
 
 // adapted from https://github.com/prometheus/client_python/blob/0.0.19/prometheus_client/parser.py

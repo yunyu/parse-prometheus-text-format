@@ -19,14 +19,22 @@ something_weird{problem="division by zero"} +Inf -3982045
 # A histogram, which has a pretty complex representation in the text format:
 # HELP http_request_duration_seconds A histogram of the request duration.
 # TYPE http_request_duration_seconds histogram
-http_request_duration_seconds_bucket{le="0.05"} 24054
-http_request_duration_seconds_bucket{le="0.1"} 33444
-http_request_duration_seconds_bucket{le="0.2"} 100392
-http_request_duration_seconds_bucket{le="0.5"} 129389
-http_request_duration_seconds_bucket{le="1"} 133988
-http_request_duration_seconds_bucket{le="+Inf"} 144320
-http_request_duration_seconds_sum 53423
-http_request_duration_seconds_count 144320
+http_request_duration_seconds_bucket{status="success",le="0.05"} 24054
+http_request_duration_seconds_bucket{status="success",le="0.1"} 33444
+http_request_duration_seconds_bucket{status="success",le="0.2"} 100392
+http_request_duration_seconds_bucket{status="success",le="0.5"} 129389
+http_request_duration_seconds_bucket{status="success",le="1"} 133988
+http_request_duration_seconds_bucket{status="success",le="+Inf"} 144320
+http_request_duration_seconds_sum{status="success"} 53423
+http_request_duration_seconds_count{status="success"} 144320
+http_request_duration_seconds_bucket{status="failure",le="0.05"} 1
+http_request_duration_seconds_bucket{status="failure",le="0.1"} 2
+http_request_duration_seconds_bucket{status="failure",le="0.2"} 3
+http_request_duration_seconds_bucket{status="failure",le="0.5"} 4
+http_request_duration_seconds_bucket{status="failure",le="1"} 5
+http_request_duration_seconds_bucket{status="failure",le="+Inf"} 6
+http_request_duration_seconds_sum{status="failure"} 10
+http_request_duration_seconds_count{status="failure"} 6
 
 # Finally a summary, which has a complex representation, too:
 # HELP rpc_duration_seconds A summary of the RPC duration in seconds.
@@ -51,3 +59,7 @@ jvm_gc_collection_seconds_count{gc="Copy",} 104.0
 jvm_gc_collection_seconds_sum{gc="Copy",} 0.491
 jvm_gc_collection_seconds_count{gc="MarkSweepCompact",} 12.0
 jvm_gc_collection_seconds_sum{gc="MarkSweepCompact",} 0.486
+
+# HELP metric_without_help
+# TYPE metric_without_help counter
+metric_without_help 0
