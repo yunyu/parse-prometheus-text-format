@@ -19,6 +19,25 @@
     ]
   },
   {
+    "name": "https_request_duration_seconds",
+    "help": "A histogram of the HTTPS request duration.",
+    "type": "HISTOGRAM",
+    "metrics": [
+      {
+        "buckets": {
+          "1": "133988",
+          "+Inf": "144320",
+          "0.05": "24054",
+          "0.1": "33444",
+          "0.2": "100392",
+          "0.5": "129389"
+        },
+        "count": "144320",
+        "sum": "53423"
+      }
+    ]
+  },
+  {
     "name": "rpc_duration_seconds",
     "help": "A summary of the RPC duration in seconds.",
     "type": "SUMMARY",

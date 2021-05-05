@@ -28,6 +28,18 @@ http_request_duration_seconds_bucket{le="+Inf"} 144320
 http_request_duration_seconds_sum 53423
 http_request_duration_seconds_count 144320
 
+# Another histogram with a different order of sum, count, and buckets
+# HELP https_request_duration_seconds A histogram of the HTTPS request duration.
+# TYPE https_request_duration_seconds histogram
+https_request_duration_seconds_count 144320
+https_request_duration_seconds_sum 53423
+https_request_duration_seconds_bucket{le="0.05"} 24054
+https_request_duration_seconds_bucket{le="0.1"} 33444
+https_request_duration_seconds_bucket{le="0.2"} 100392
+https_request_duration_seconds_bucket{le="0.5"} 129389
+https_request_duration_seconds_bucket{le="1"} 133988
+https_request_duration_seconds_bucket{le="+Inf"} 144320
+
 # Finally a summary, which has a complex representation, too:
 # HELP rpc_duration_seconds A summary of the RPC duration in seconds.
 # TYPE rpc_duration_seconds summary
